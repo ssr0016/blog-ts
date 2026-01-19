@@ -5,20 +5,42 @@
  * Custom modules
  */
 import { logger } from "@/lib/winston";
+import { genUsername } from "@/utils";
 
 /**
  * Models
  */
+import User from "@/models/user";
 
 /**
  * Types
  */
+import type { IUser } from "@/models/user";
 import type { Request, Response } from "express";
 
+type UserData = Pick<IUser, "email" | "password" | "role">;
+
 const register = async (req: Request, res: Response): Promise<void> => {
+  const { email, password, role } = req.body as UserData;
+
   try {
+    const username = genUsername();
+
+    const newUser = await User.create({
+      username,
+      email,
+      password,
+      role,
+    });
+
+    // Generate access token and refresh token for new user
+
     res.status(201).json({
-      message: "New user created",
+      user: {
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+      },
     });
   } catch (err) {
     res.status(500).json({
