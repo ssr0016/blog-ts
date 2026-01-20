@@ -4,7 +4,12 @@
 /**
  * Node modules
  */
+import bcrypt from "bcrypt";
 import { model, Schema } from "mongoose";
+
+/**
+ * Custom modules
+ */
 
 export interface IUser {
   username: string;
@@ -94,5 +99,16 @@ const userSchema = new Schema<IUser>(
     timestamps: true,
   },
 );
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    next();
+    return;
+  }
+
+  // Hash the password
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
 
 export default model<IUser>("User", userSchema);
